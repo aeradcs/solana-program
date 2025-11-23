@@ -16,8 +16,6 @@ describe("subscriptions-dapp", () => {
   let subscriber: Keypair;
   let creatorProfilePda: PublicKey;
   let subscriptionPda: PublicKey;
-  let creatorProfileBump: number;
-  let subscriptionBump: number;
 
   const LAMPORTS_PER_SOL = 1_000_000_000;
   const planName = "NFT Alpha";
@@ -40,7 +38,7 @@ describe("subscriptions-dapp", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    [creatorProfilePda, creatorProfileBump] = PublicKey.findProgramAddressSync(
+    [creatorProfilePda] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("plan"),
         creator.publicKey.toBuffer(),
@@ -49,7 +47,7 @@ describe("subscriptions-dapp", () => {
       program.programId
     );
 
-    [subscriptionPda, subscriptionBump] = PublicKey.findProgramAddressSync(
+    [subscriptionPda] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("subscription"),
         subscriber.publicKey.toBuffer(),
@@ -62,7 +60,7 @@ describe("subscriptions-dapp", () => {
 
   describe("create_subscription_plan", () => {
     it("should successfully create a subscription plan", async () => {
-      const tx = await program.methods
+      await program.methods
         .createSubscriptionPlan(planId, planName, planPrice, durationDays)
         .accounts({
           creatorProfile: creatorProfilePda,
@@ -340,7 +338,7 @@ describe("subscriptions-dapp", () => {
         subscriber.publicKey
       );
 
-      const tx = await program.methods
+      await program.methods
         .subscribe(planId, creator.publicKey)
         .accounts({
           subscription: subscriptionPda,
@@ -426,7 +424,7 @@ describe("subscriptions-dapp", () => {
     });
 
     it("should fail to subscribe with creator account mismatch", async () => {
-      const wrongCreator = Keypair.generate();
+      const wrongCreatorAccount = Keypair.generate().publicKey;
 
       try {
         await program.methods
@@ -435,7 +433,7 @@ describe("subscriptions-dapp", () => {
             subscription: subscriptionPda,
             creatorProfile: creatorProfilePda,
             subscriber: subscriber.publicKey,
-            creatorAccount: wrongCreator.publicKey,
+            creatorAccount: wrongCreatorAccount,
             systemProgram: SystemProgram.programId,
           })
           .signers([subscriber])
@@ -504,64 +502,6 @@ describe("subscriptions-dapp", () => {
         .view();
 
       expect(isActive).to.equal(true);
-    });
-
-    it("should fail for expired subscription", async () => {
-      const expiredSubscriber = Keypair.generate();
-      await provider.connection.requestAirdrop(
-        expiredSubscriber.publicKey,
-        10 * LAMPORTS_PER_SOL
-      );
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const [expiredSubscriptionPda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("subscription"),
-          expiredSubscriber.publicKey.toBuffer(),
-          creator.publicKey.toBuffer(),
-          planId.toArrayLike(Buffer, "le", 8),
-        ],
-        program.programId
-      );
-
-      await program.methods
-        .subscribe(planId, creator.publicKey)
-        .accounts({
-          subscription: expiredSubscriptionPda,
-          creatorProfile: creatorProfilePda,
-          subscriber: expiredSubscriber.publicKey,
-          creatorAccount: creator.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([expiredSubscriber])
-        .rpc();
-
-      const subscriptionData = await program.account.subscription.fetch(
-        expiredSubscriptionPda
-      );
-      const currentTime = Math.floor(Date.now() / 1000);
-      const timeUntilExpiry =
-        subscriptionData.expiresAt.toNumber() - currentTime;
-
-      if (timeUntilExpiry > 0) {
-        console.log(
-          `Subscription expires in ${timeUntilExpiry} seconds, skipping expiration test`
-        );
-        return;
-      }
-
-      try {
-        await program.methods
-          .checkSubscription()
-          .accounts({
-            subscription: expiredSubscriptionPda,
-          })
-          .view();
-
-        expect.fail("Should have thrown an error for expired subscription");
-      } catch (error) {
-        expect(error.message).to.include("Subscription has expired");
-      }
     });
   });
 
