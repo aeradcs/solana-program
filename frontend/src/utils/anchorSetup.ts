@@ -12,7 +12,6 @@ export function getProgram(wallet?: AnchorWallet) {
   const connection = new Connection(RPC_URL, "confirmed");
 
   if (!wallet) {
-    // Read-only mode: create a dummy wallet for provider
     const dummyWallet = {
       publicKey: PublicKey.default,
       signTransaction: async (tx: any) => tx,

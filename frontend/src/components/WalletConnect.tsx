@@ -1,16 +1,7 @@
-import { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export const WalletConnect = () => {
-  const { wallets, wallet, connected } = useWallet();
-
-  useEffect(() => {
-    console.log("🔌 WalletConnect - Available wallets:", wallets);
-    console.log("🔌 WalletConnect - Current wallet:", wallet);
-    console.log("🔌 WalletConnect - Connected:", connected);
-  }, [wallets, wallet, connected]);
-
   return (
     <div style={{ display: "flex", justifyContent: "flex-end" }}>
       <WalletMultiButton

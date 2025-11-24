@@ -24,7 +24,6 @@ export const CreatePlan = () => {
     setError("");
     setSuccess("");
 
-    // Validation
     if (!publicKey) {
       setError("Please connect your wallet first");
       return;
@@ -65,7 +64,6 @@ export const CreatePlan = () => {
     setLoading(true);
 
     try {
-      // Create wallet adapter object that matches AnchorWallet interface
       if (!signTransaction || !signAllTransactions) {
         throw new Error("Wallet does not support required signing methods");
       }
@@ -78,13 +76,10 @@ export const CreatePlan = () => {
 
       const { program } = getProgram(wallet);
 
-      // Generate unique plan_id using timestamp
       const planId = new BN(Date.now());
 
-      // Convert SOL to lamports
       const priceInLamports = solToLamports(priceNum);
 
-      // Derive PDA for creator profile
       const [creatorProfilePda] = getCreatorProfilePda(publicKey, planId);
 
       const tx = await program.methods
@@ -103,12 +98,10 @@ export const CreatePlan = () => {
 
       setSuccess("Plan created successfully!");
 
-      // Clear form
       setPlanName("");
       setPrice("");
       setDuration("");
 
-      // Redirect to My Plans after 2 seconds
       setTimeout(() => {
         navigate("/my-plans");
       }, 2000);
@@ -224,7 +217,6 @@ export const CreatePlan = () => {
         }}
       >
         <form onSubmit={handleSubmit}>
-          {/* Plan Name */}
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               htmlFor="planName"
@@ -259,7 +251,6 @@ export const CreatePlan = () => {
             />
           </div>
 
-          {/* Price */}
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               htmlFor="price"
@@ -296,7 +287,6 @@ export const CreatePlan = () => {
             />
           </div>
 
-          {/* Duration */}
           <div style={{ marginBottom: "1.5rem" }}>
             <label
               htmlFor="duration"
@@ -332,7 +322,6 @@ export const CreatePlan = () => {
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <div
               style={{
@@ -349,7 +338,6 @@ export const CreatePlan = () => {
             </div>
           )}
 
-          {/* Success Message */}
           {success && (
             <div
               style={{
@@ -366,7 +354,6 @@ export const CreatePlan = () => {
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

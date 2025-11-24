@@ -33,20 +33,16 @@ export const Marketplace = () => {
       setLoading(true);
       setError("");
 
-      // Create wallet object if connected, otherwise undefined for read-only mode
       const wallet =
         publicKey && signTransaction && signAllTransactions
           ? { publicKey, signTransaction, signAllTransactions }
           : undefined;
 
-      // getProgram works with or without wallet (read-only mode)
       const { program } = getProgram(wallet);
 
-      // Fetch all plans (works with or without wallet)
       const allPlans = await program.account.creatorProfile.all();
       setPlans(allPlans as PlanData[]);
 
-      // Only check subscription status if wallet is connected
       if (publicKey && wallet) {
         const statusMap: Record<string, boolean> = {};
         for (const plan of allPlans) {
