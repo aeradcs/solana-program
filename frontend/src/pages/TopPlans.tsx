@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { getProgram } from "../utils/anchorSetup";
-import { lamportsToSol, truncateAddress } from "../utils/constants";
+import { lamportsToSol } from "../utils/constants";
 
 interface PlanData {
   publicKey: PublicKey;
@@ -87,123 +87,229 @@ export const TopPlans = () => {
     fetchTopPlans();
   }, []);
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Top 5 Most Subscribed Plans
-        </h1>
-
-        {loading && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-            <p className="mt-4 text-gray-600">Loading top plans...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && topPlans.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">No plans available yet.</p>
-          </div>
-        )}
-
-        {!loading && !error && topPlans.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr className="bg-gray-100 border-b">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Rank
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Plan Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Creator
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Price (SOL)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Subscribers
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Total Earned (SOL)
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {topPlans.map((stats, index) => (
-                  <tr
-                    key={`${stats.plan.account.creator.toBase58()}-${stats.plan.account.planId.toString()}`}
-                    className="hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                          index === 0
-                            ? "bg-yellow-400 text-yellow-900"
-                            : index === 1
-                            ? "bg-gray-300 text-gray-900"
-                            : index === 2
-                            ? "bg-orange-400 text-orange-900"
-                            : "bg-gray-200 text-gray-700"
-                        }`}
-                      >
-                        {index + 1}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {stats.plan.account.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {stats.plan.account.durationDays} days
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600 font-mono">
-                        {truncateAddress(
-                          stats.plan.account.creator.toBase58()
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-purple-600">
-                        {lamportsToSol(stats.plan.account.price.toNumber())}{" "}
-                        SOL
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        {stats.subscriberCount}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-bold text-green-600">
-                        {stats.totalEarned.toFixed(2)} SOL
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {!loading && !error && topPlans.length > 0 && (
-          <div className="mt-6 text-sm text-gray-500 text-center">
-            Showing top {topPlans.length} most subscribed plan
-            {topPlans.length !== 1 ? "s" : ""}
-          </div>
-        )}
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              display: "inline-block",
+              width: "3rem",
+              height: "3rem",
+              border: "0.25rem solid #e5e7eb",
+              borderTopColor: "#9333ea",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <p style={{ marginTop: "1rem", color: "#6b7280" }}>
+            Loading top plans...
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+      <h1
+        style={{
+          fontSize: "2rem",
+          fontWeight: "bold",
+          color: "#111827",
+          marginBottom: "2rem",
+        }}
+      >
+        Top 5 Plans
+      </h1>
+
+      {error && (
+        <div
+          style={{
+            padding: "0.75rem",
+            backgroundColor: "#fee2e2",
+            border: "1px solid #fca5a5",
+            borderRadius: "0.375rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <p style={{ color: "#991b1b", fontSize: "0.875rem", margin: 0 }}>
+            {error}
+          </p>
+        </div>
+      )}
+
+      {!error && topPlans.length === 0 && (
+        <div style={{ textAlign: "center", padding: "2rem 0" }}>
+          <p style={{ color: "#6b7280" }}>No plans available yet.</p>
+        </div>
+      )}
+
+      {!error && topPlans.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {topPlans.map((stats, index) => {
+            const getRankStyle = (rank: number) => {
+              if (rank === 0)
+                return { backgroundColor: "#fbbf24", color: "#78350f" };
+              if (rank === 1)
+                return { backgroundColor: "#fb923c", color: "#7c2d12" };
+              if (rank === 2)
+                return { backgroundColor: "#f97316", color: "#7c2d12" };
+              if (rank === 3)
+                return { backgroundColor: "#f87171", color: "#7f1d1d" };
+              return { backgroundColor: "#ef4444", color: "#7f1d1d" };
+            };
+
+            const getRankLabel = (rank: number) => {
+              if (rank === 0) return "1st";
+              if (rank === 1) return "2nd";
+              if (rank === 2) return "3rd";
+              if (rank === 3) return "4th";
+              return "5th";
+            };
+
+            return (
+              <div
+                key={`${stats.plan.account.creator.toBase58()}-${stats.plan.account.planId.toString()}`}
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "0.5rem",
+                  padding: "1.5rem",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                  transition: "box-shadow 0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 1px 3px 0 rgba(0, 0, 0, 0.1)";
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "3rem",
+                      height: "2.5rem",
+                      borderRadius: "0.375rem",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                      ...getRankStyle(index),
+                    }}
+                  >
+                    {getRankLabel(index)}
+                  </span>
+                  <h3
+                    style={{
+                      fontSize: "1.25rem",
+                      fontWeight: "600",
+                      color: "#111827",
+                      margin: 0,
+                    }}
+                  >
+                    {stats.plan.account.name}
+                  </h3>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: "1.5rem",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        marginBottom: "0.25rem",
+                        margin: 0,
+                      }}
+                    >
+                      Subscribers
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "1.125rem",
+                        fontWeight: "600",
+                        color: "#111827",
+                        margin: 0,
+                      }}
+                    >
+                      {stats.subscriberCount}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        marginBottom: "0.25rem",
+                        margin: 0,
+                      }}
+                    >
+                      Price
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "1.125rem",
+                        fontWeight: "600",
+                        color: "#9333ea",
+                        margin: 0,
+                      }}
+                    >
+                      {lamportsToSol(stats.plan.account.price.toNumber())} SOL
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        marginBottom: "0.25rem",
+                        margin: 0,
+                      }}
+                    >
+                      Total Earned
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "1.125rem",
+                        fontWeight: "600",
+                        color: "#059669",
+                        margin: 0,
+                      }}
+                    >
+                      {stats.totalEarned.toFixed(2)} SOL
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
