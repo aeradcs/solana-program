@@ -3,13 +3,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { getProgram } from "../utils/anchorSetup";
-import { getCreatorProfilePda } from "../utils/helpers";
-import {
-  lamportsToSol,
-  formatDate,
-  truncateAddress,
-  isSubscriptionActive,
-} from "../utils/constants";
+import { getCreatorProfilePda, getSubscriptionPda } from "../utils/helpers";
+import { lamportsToSol, formatDate, truncateAddress } from "../utils/constants";
 
 interface SubscriptionData {
   publicKey: PublicKey;
@@ -32,6 +27,7 @@ interface SubscriptionWithPlan {
     durationDays: number;
     createdAt: BN;
   };
+  isActive: boolean;
 }
 
 export const MySubscriptions = () => {
@@ -84,9 +80,29 @@ export const MySubscriptions = () => {
               creatorProfilePda
             );
 
+            const [subscriptionPda] = getSubscriptionPda(
+              sub.account.subscriber,
+              sub.account.creator,
+              sub.account.planId
+            );
+
+            let isActive = false;
+            try {
+              isActive = await program.methods
+                .checkSubscription()
+                .accountsPartial({
+                  subscription: subscriptionPda,
+                })
+                .view();
+            } catch (err) {
+              console.error("Error checking subscription status:", err);
+              isActive = false;
+            }
+
             return {
               subscription: sub.account,
               plan: creatorProfile,
+              isActive,
             };
           })
         );
@@ -226,10 +242,6 @@ export const MySubscriptions = () => {
           }}
         >
           {subscriptions.map((item, index) => {
-            const isActive = isSubscriptionActive(
-              item.subscription.expiresAt.toNumber()
-            );
-
             return (
               <div
                 key={`${item.subscription.creator.toBase58()}-${item.subscription.planId.toString()}-${index}`}
@@ -266,11 +278,11 @@ export const MySubscriptions = () => {
                       borderRadius: "9999px",
                       fontSize: "0.75rem",
                       fontWeight: "600",
-                      backgroundColor: isActive ? "#d1fae5" : "#fee2e2",
-                      color: isActive ? "#065f46" : "#991b1b",
+                      backgroundColor: item.isActive ? "#d1fae5" : "#fee2e2",
+                      color: item.isActive ? "#065f46" : "#991b1b",
                     }}
                   >
-                    {isActive ? "Active" : "Expired"}
+                    {item.isActive ? "Active" : "Expired"}
                   </span>
                 </div>
 

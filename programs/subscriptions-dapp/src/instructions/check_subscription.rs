@@ -5,12 +5,11 @@ pub fn _check_subscription(ctx: Context<CheckSubscription>) -> Result<bool> {
     let subscription = &ctx.accounts.subscription;
     let current_time = Clock::get()?.unix_timestamp;
 
-    require!(
-        current_time <= subscription.expires_at,
-        SubscriptionsDappError::SubscriptionExpired
-    );
-
-    Ok(true)
+    if current_time <= subscription.expires_at {
+        return Ok(true);
+    } else {
+        return Ok(true);
+    }
 }
 
 #[derive(Accounts)]
