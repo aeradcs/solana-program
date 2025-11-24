@@ -82,7 +82,7 @@ export const CreatePlan = () => {
 
       const [creatorProfilePda] = getCreatorProfilePda(publicKey, planId);
 
-      const tx = await program.methods
+      await program.methods
         .createSubscriptionPlan(
           planId,
           planName.trim(),

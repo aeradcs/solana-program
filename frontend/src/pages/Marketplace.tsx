@@ -113,7 +113,7 @@ export const Marketplace = () => {
         plan.account.planId
       );
 
-      const tx = await program.methods
+      await program.methods
         .subscribe(plan.account.planId, plan.account.creator)
         .accountsPartial({
           subscription: subscriptionPda,
