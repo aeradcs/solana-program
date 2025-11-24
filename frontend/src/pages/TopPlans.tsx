@@ -72,7 +72,12 @@ export const TopPlans = () => {
       }
 
       const sortedPlans = Array.from(planStatsMap.values())
-        .sort((a, b) => b.subscriberCount - a.subscriberCount)
+        .sort((a, b) => {
+          if (b.subscriberCount !== a.subscriberCount) {
+            return b.subscriberCount - a.subscriberCount;
+          }
+          return b.totalEarned - a.totalEarned;
+        })
         .slice(0, 5);
 
       setTopPlans(sortedPlans);
